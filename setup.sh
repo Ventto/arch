@@ -145,6 +145,8 @@ GRUB_SETUP_STEP_FIRST()
 
 RUN_CHROOT_SETUP()
 {
+    TITLE "Step: ${FUNCNAME[0]}"
+
     # Run the second script which runs commands under chroot
     cp ./chroot-setup.sh /mnt
     arch-chroot /mnt ./chroot-setup.sh
@@ -152,18 +154,24 @@ RUN_CHROOT_SETUP()
 
 REMOVE_ROOT_PASSWD()
 {
+    TITLE "Step: ${FUNCNAME[0]}"
+
     # Disable root's password
     passwd -R /mnt -l root
 }
 
 PRINT_RESUME()
 {
+    TITLE "Step: ${FUNCNAME[0]}"
+
     lsblk
     df -h | grep -E 'Size|vg-|sda'
 }
 
 UMOUNT_PARTITIONS()
 {
+    TITLE "Step: ${FUNCNAME[0]}"
+
     umount -R /mnt
     swapoff -a
 }

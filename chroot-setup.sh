@@ -78,6 +78,8 @@ ADD_USER()
 
 SET_SUDOERS()
 {
+    TITLE "Step: ${FUNCNAME[0]}"
+
     pacman -S --noconfirm sudo
     sed -i 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/g' /etc/sudoers
 }
