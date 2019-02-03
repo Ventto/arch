@@ -6,8 +6,9 @@ encrypt the entire system"*
 
 # Requirements
 
-* Arch Linux ISO (+ bash)
+* Arch Linux ISO
 * Internet connection
+* *bash* and *unzip* packages
 
 # Run
 
