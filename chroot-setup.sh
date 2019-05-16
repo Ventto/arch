@@ -14,12 +14,11 @@ TITLE()
 GRUB_INSTALL()
 {
     TITLE "Step: ${FUNCNAME[0]}"
-
+    #
     ln -s /hostrun/lvm /run/lvm
     ls -l /run/lvm
     grub-install --efi-directory=/boot/efi
     grub-mkconfig -o /boot/grub/grub.cfg
-    grub-mkconfig -o /boot/efi/EFI/arch/grub.cfg
 }
 
 SET_LOCALTIME()
