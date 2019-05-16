@@ -101,15 +101,23 @@ MOUNT_PARTITIONS()
     mkdir /mnt/boot
     mount /dev/mapper/vg-boot /mnt/boot
     mkdir /mnt/boot/efi
-    mount /dev/sda1 /mnt/boot/efi
+    mount "${STORAGE_DEVICE}1" /mnt/boot/efi
 
     lsblk
+}
+
+FILTER_MIRROR_FOR_PACKAGES()
+{
+    TITLE "Step: ${FUNCNAME[0]}"
+
+    grep '## France' -A 1 /etc/pacman.d/mirrorlist \
+        | grep -v '\-\-' > /etc/pacman.d/mirrorlist.new
+    mv /etc/pacman.d/mirrorlist.new /etc/pacman.d/mirrorlist
 }
 
 INSTALL_ARCHLINUX_BASE_PACKAGES()
 {
     TITLE "Step: ${FUNCNAME[0]}"
-
     pacstrap /mnt base base-devel wget vim efibootmgr grub --noconfirm
 }
 
@@ -187,6 +195,7 @@ MAIN()
         ENCRYPT_SYSTEM
         MAKEFS_PARTITIONS
         MOUNT_PARTITIONS
+        FILTER_MIRROR_FOR_PACKAGES
         INSTALL_ARCHLINUX_BASE_PACKAGES
         GENERATE_FSTAB
         CREATE_INITRD
