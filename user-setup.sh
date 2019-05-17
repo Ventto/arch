@@ -69,6 +69,27 @@ DOWNLOAD_DOTFILES()
     printf "[include]\n\tpath = aliases\n" >> "${HOME}/.config/dot/config"
 }
 
+COMPLETE_TOOL_CONFIGS()
+{
+    TITLE "Step: ${FUNCNAME[0]}"
+
+    set -x
+
+    # Setup group permission for lux
+    sudo lux >/dev/null 2>&1
+
+    # Install neovim plugins
+    nvim +PlugInstall +qall >/dev/null 2>&1
+
+    # Restore own pin tabs
+    make -C "${HOME}/.config/firefox/.make/"
+
+    # Build smplayer theme
+    make -C "${HOME}/.config/smplayer/contrib"
+
+    set +x
+}
+
 MAIN()
 {
     # Display output in terminal and write it to a log file as well
@@ -77,6 +98,7 @@ MAIN()
         INSTALL_YAY
         INSTALL_AUR_PKGS
         DOWNLOAD_DOTFILES
+        COMPLETE_TOOL_CONFIGS
     } 2>&1 | tee install.log
 }
 
