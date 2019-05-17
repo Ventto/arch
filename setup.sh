@@ -4,6 +4,9 @@
 #
 set -e
 
+STORAGE_DEVICE="/dev/sda"
+PARTITION_PREFIX=""
+
 TITLE()
 {
     printf '\n#===================================#\n'
@@ -21,7 +24,6 @@ CHECK_CONNECTION()
 SET_TIMEDATECTL()
 {
     TITLE "Step: ${FUNCNAME[0]}"
-
     # Enable network time synchronization
     timedatectl set-ntp true
     timedatectl status
@@ -32,21 +34,21 @@ ERASING_DISK()
     TITLE "Step: ${FUNCNAME[0]}"
 
     # Erase the GPT at least and potentially the first bootable partition
-    dd if=/dev/zero of=/dev/sda bs=100M count=10 status=progress
+    dd if=/dev/zero of="$STORAGE_DEVICE" bs=100M count=10 status=progress
 }
 
 CREATE_PARTITIONS()
 {
     TITLE "Step: ${FUNCNAME[0]}"
 
-    parted /dev/sda --script mklabel gpt
-    parted /dev/sda --script mkpart ESP fat32 1MiB 200MiB
-    parted /dev/sda --script set 1 boot on
-    parted /dev/sda --script name 1 efi
-    parted /dev/sda --script mkpart primary 800MiB 100%
-    parted /dev/sda --script set 2 lvm on
-    parted /dev/sda --script name 2 lvm
-    parted /dev/sda --script print
+    parted "$STORAGE_DEVICE" --script mklabel gpt
+    parted "$STORAGE_DEVICE" --script mkpart ESP fat32 1MiB 200MiB
+    parted "$STORAGE_DEVICE" --script set 1 boot on
+    parted "$STORAGE_DEVICE" --script name 1 efi
+    parted "$STORAGE_DEVICE" --script mkpart primary 800MiB 100%
+    parted "$STORAGE_DEVICE" --script set 2 lvm on
+    parted "$STORAGE_DEVICE" --script name 2 lvm
+    parted "$STORAGE_DEVICE" --script print
 }
 
 read_secret()
@@ -69,13 +71,13 @@ ENCRYPT_SYSTEM()
     printf "Enter passphrase for system encryption:"
     read_secret passphrase
     # shellcheck disable=SC2154
-    echo -n "$passphrase" | cryptsetup -q luksFormat /dev/sda2 -
-    echo -n "$passphrase" | cryptsetup luksOpen /dev/sda2 lvm -
+    echo -n "$passphrase" | cryptsetup -q luksFormat "${STORAGE_DEVICE}${PARTITION_PREFIX}2" -
+    echo -n "$passphrase" | cryptsetup luksOpen "${STORAGE_DEVICE}${PARTITION_PREFIX}2" lvm -
     pvcreate /dev/mapper/lvm
     vgcreate vg /dev/mapper/lvm
     lvcreate -L 1G vg -C y -n swap
     lvcreate -L 512M vg -n boot
-    lvcreate -L 15G vg -n root
+    lvcreate -L 40G vg -n root
     lvcreate -l +100%FREE vg -n home
 }
 
@@ -87,7 +89,7 @@ MAKEFS_PARTITIONS()
     mkfs.ext4 /dev/mapper/vg-boot
     mkfs.ext4 /dev/mapper/vg-root
     mkfs.ext4 /dev/mapper/vg-home
-    mkfs.fat -F32 /dev/sda1
+    mkfs.fat -F32 "${STORAGE_DEVICE}${PARTITION_PREFIX}1"
 }
 
 MOUNT_PARTITIONS()
@@ -101,7 +103,7 @@ MOUNT_PARTITIONS()
     mkdir /mnt/boot
     mount /dev/mapper/vg-boot /mnt/boot
     mkdir /mnt/boot/efi
-    mount "${STORAGE_DEVICE}1" /mnt/boot/efi
+    mount "${STORAGE_DEVICE}${PARTITION_PREFIX}1" /mnt/boot/efi
 
     lsblk
 }
@@ -140,7 +142,7 @@ GRUB_SETUP_STEP_FIRST()
 {
     TITLE "Step: ${FUNCNAME[0]}"
 
-    sed -i 's#GRUB_CMDLINE_LINUX="\(.*\)"#GRUB_CMDLINE_LINUX="cryptdevice=/dev/sda2:lvm"#' \
+    sed -i "s#GRUB_CMDLINE_LINUX=\"\\(.*\\)\"#GRUB_CMDLINE_LINUX=\"cryptdevice=${STORAGE_DEVICE}${PARTITION_PREFIX}2:lvm\"#" \
         /mnt/etc/default/grub
     echo "GRUB_ENABLE_CRYPTODISK=y" >> /mnt/etc/default/grub
 
@@ -173,7 +175,7 @@ PRINT_RESUME()
     TITLE "Step: ${FUNCNAME[0]}"
 
     lsblk
-    df -h | grep -E 'Size|vg-|sda'
+    df -h | grep -E "Size|vg-|$(echo "$STORAGE_DEVICE" | cut -d/ -f3)"
 }
 
 UMOUNT_PARTITIONS()
