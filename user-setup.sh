@@ -50,6 +50,25 @@ INSTALL_AUR_PKGS()
     done
 }
 
+DOWNLOAD_DOTFILES()
+{
+    TITLE "Step: ${FUNCNAME[0]}"
+
+    cd "$HOME"
+
+    # Teardown
+    rm -f "${HOME}/.config/dot"
+
+    mkdir -p "${HOME}/.config/dot"
+    git init --bare "${HOME}/.config/dot"
+    dot="/usr/bin/git --git-dir=${HOME}/.config/dot --work-tree=${HOME}"
+    $dot remote add origin https://github.com/Ventto/dot.git
+    if ! $dot pull --rebase origin master; then
+        $dot reset --hard origin/master
+    fi
+    printf "[include]\n\tpath = aliases\n" >> "${HOME}/.config/dot/config"
+}
+
 MAIN()
 {
     # Display output in terminal and write it to a log file as well
@@ -57,6 +76,7 @@ MAIN()
         UPDATE_PACKAGE_LIST
         INSTALL_YAY
         INSTALL_AUR_PKGS
+        DOWNLOAD_DOTFILES
     } 2>&1 | tee install.log
 }
 
