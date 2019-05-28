@@ -88,7 +88,7 @@ COMPLETE_TOOL_CONFIGS()
     sudo lux >/dev/null 2>&1
 
     # Install neovim plugins
-    nvim +PlugInstall +qall >/dev/null 2>&1
+    nvim +PlugInstall +qall! >/dev/null 2>&1
 
     # Restore own pin tabs
     make -C "${HOME}/.config/firefox/.make/"
