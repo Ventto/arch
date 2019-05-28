@@ -107,7 +107,8 @@ INSTALL_PACMAN_USER_PKGS()
 {
     TITLE "Step: ${FUNCNAME[0]}"
 
-    wget -O pacman-list.pkg https://gist.githubusercontent.com/Ventto/104ccef45f20e424e78ac064d69e6551/raw/pacman-list.pkg
+    wget -O pacman-list.pkg \
+        https://gist.githubusercontent.com/Ventto/b82f4939eefcb6a534c15ff960920529/raw
 
     pacman -S --noconfirm - < pacman-list.pkg
 }
