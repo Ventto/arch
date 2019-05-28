@@ -75,7 +75,7 @@ ADD_USER()
     TITLE "Step: ${FUNCNAME[0]}"
 
     useradd -m -G wheel -s /bin/zsh ventto
-    echo -n 'ventto:user' | chpasswd
+    echo "ventto:user" | chpasswd
 }
 
 SET_SUDOERS()
