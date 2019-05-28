@@ -31,6 +31,7 @@ INSTALL_YAY()
     TITLE "Step: ${FUNCNAME[0]}"
 
     cd /tmp
+    rm -rf yay/
     git clone https://aur.archlinux.org/yay.git
     cd yay
     makepkg -sc --install --needed --noconfirm
