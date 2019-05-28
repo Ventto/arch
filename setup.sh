@@ -5,7 +5,7 @@
 set -e
 
 STORAGE_DEVICE="/dev/sda"
-PARTITION_PREFIX=""
+PARTITION_SUFFIX=""
 PASSPHRASE=
 
 TITLE()
@@ -79,8 +79,8 @@ ENCRYPT_SYSTEM()
     modprobe dm-mod
 
     # shellcheck disable=SC2154
-    echo -n "$PASSPHRASE" | cryptsetup -q luksFormat "${STORAGE_DEVICE}${PARTITION_PREFIX}2" -
-    echo -n "$PASSPHRASE" | cryptsetup luksOpen "${STORAGE_DEVICE}${PARTITION_PREFIX}2" lvm -
+    echo -n "$PASSPHRASE" | cryptsetup -q luksFormat "${STORAGE_DEVICE}${PARTITION_SUFFIX}2" -
+    echo -n "$PASSPHRASE" | cryptsetup luksOpen "${STORAGE_DEVICE}${PARTITION_SUFFIX}2" lvm -
     pvcreate /dev/mapper/lvm
     vgcreate vg /dev/mapper/lvm
     lvcreate -L 1G vg -C y -n swap
@@ -97,7 +97,7 @@ MAKEFS_PARTITIONS()
     mkfs.ext4 /dev/mapper/vg-boot
     mkfs.ext4 /dev/mapper/vg-root
     mkfs.ext4 /dev/mapper/vg-home
-    mkfs.fat -F32 "${STORAGE_DEVICE}${PARTITION_PREFIX}1"
+    mkfs.fat -F32 "${STORAGE_DEVICE}${PARTITION_SUFFIX}1"
 }
 
 MOUNT_PARTITIONS()
@@ -111,7 +111,7 @@ MOUNT_PARTITIONS()
     mkdir /mnt/boot
     mount /dev/mapper/vg-boot /mnt/boot
     mkdir /mnt/boot/efi
-    mount "${STORAGE_DEVICE}${PARTITION_PREFIX}1" /mnt/boot/efi
+    mount "${STORAGE_DEVICE}${PARTITION_SUFFIX}1" /mnt/boot/efi
 
     lsblk
 }
@@ -150,7 +150,7 @@ GRUB_SETUP_STEP_FIRST()
 {
     TITLE "Step: ${FUNCNAME[0]}"
 
-    sed -i "s#GRUB_CMDLINE_LINUX=\"\\(.*\\)\"#GRUB_CMDLINE_LINUX=\"cryptdevice=${STORAGE_DEVICE}${PARTITION_PREFIX}2:lvm\"#" \
+    sed -i "s#GRUB_CMDLINE_LINUX=\"\\(.*\\)\"#GRUB_CMDLINE_LINUX=\"cryptdevice=${STORAGE_DEVICE}${PARTITION_SUFFIX}2:lvm\"#" \
         /mnt/etc/default/grub
     echo "GRUB_ENABLE_CRYPTODISK=y" >> /mnt/etc/default/grub
 
@@ -168,7 +168,9 @@ RUN_CHROOT_SETUP()
     # Run the second script which runs commands under chroot
     cp ./chroot-setup.sh /mnt
     arch-chroot /mnt ./chroot-setup.sh \
-        "${STORAGE_DEVICE}${PARTITION_PREFIX}2" "$PASSPHRASE"
+        "${STORAGE_DEVICE}${PARTITION_SUFFIX}2" "$PASSPHRASE"
+
+    TITLE "Step: End/${FUNCNAME[0]}"
 }
 
 REMOVE_ROOT_PASSWD()
