@@ -16,6 +16,11 @@ TITLE()
     printf '#===================================#\n\n'
 }
 
+UPDATE_PASSWD()
+{
+    passwd
+}
+
 UPDATE_PACKAGE_LIST()
 {
     sudo pacman -Syu
@@ -98,6 +103,7 @@ MAIN()
 {
     # Display output in terminal and write it to a log file as well
     {
+        UPDATE_PASSWD
         UPDATE_PACKAGE_LIST
         INSTALL_YAY
         INSTALL_AUR_PKGS
