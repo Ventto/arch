@@ -128,7 +128,7 @@ FILTER_MIRROR_FOR_PACKAGES()
 INSTALL_ARCHLINUX_BASE_PACKAGES()
 {
     TITLE "Step: ${FUNCNAME[0]}"
-    pacstrap /mnt base base-devel wget vim efibootmgr grub --noconfirm
+    pacstrap /mnt base base-devel wget efibootmgr grub --noconfirm
 }
 
 GENERATE_FSTAB()
