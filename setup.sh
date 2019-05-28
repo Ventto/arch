@@ -161,9 +161,27 @@ GRUB_SETUP_STEP_FIRST()
     mount --bind /run /mnt/hostrun
 }
 
-RUN_CHROOT_SETUP()
+ADD_CRYPTOKEY_TO_INITRAMFS()
 {
     TITLE "Step: ${FUNCNAME[0]}"
+
+    # Generate 4096-bit key
+    dd bs=1024 count=4 if=/dev/random of=/mnt/crypto_keyfile.bin \
+       iflag=fullblock
+
+    arch-chroot /mnt echo -n '$PASSPHRASE' | cryptsetup luksAddKey '${STORAGE_DEVICE}${PARTITION_SUFFIX}2' /crypto_keyfile.bin -
+
+    # Add file to the initramfs config file before generating it
+    sed -i 's#^FILES=(\(.*\))#FILES=(\1 /crypto_keyfile.bin)#' \
+        /mnt/etc/mkinitcpio.conf
+
+    arch-chroot /mnt mkinitcpio -p linux
+    arch-chroot /mnt chmod 000 /crypto_keyfile.bin
+}
+
+RUN_CHROOT_SETUP()
+{
+    TITLE "Step: Begin/${FUNCNAME[0]}"
 
     # Run the second script which runs commands under chroot
     cp ./chroot-setup.sh /mnt
@@ -222,6 +240,7 @@ MAIN()
         GENERATE_FSTAB
         CREATE_INITRD
         GRUB_SETUP_STEP_FIRST
+        ADD_CRYPTOKEY_TO_INITRAMFS
         RUN_CHROOT_SETUP
         REMOVE_ROOT_PASSWD
         PRINT_RESUME
