@@ -5,6 +5,8 @@
 set -e
 set -x
 
+LOG_AUR_INSTALL="${HOME}/yay.log"
+LOG_SCRIPT="${HOME}/install.log"
 CURRENT_DIR="$(pwd)"
 
 TITLE()
@@ -37,15 +39,17 @@ INSTALL_AUR_PKGS()
     cd "$CURRENT_DIR"
     # FIXME: download a gist file
     test -r aur-pkgs.txt
+
+    echo "The following AUR packages will be installed:"
     cat aur-pkgs.txt
     yay -Syu
-    rm -f yay.log
+    rm -f "$LOG_AUR_INSTALL"
 
     cat aur-pkgs.txt | while read -r pkg; do
         if yay -S --noconfirm "$pkg"; then
-            echo "${pkg} - ok" >> yay.log
+            echo "${pkg} - ok" >> "$LOG_AUR_INSTALL"
         else
-            echo "${pkg} - failed" >> yay.log
+            echo "${pkg} - failed" >> "$LOG_AUR_INSTALL"
         fi
     done
 }
@@ -99,7 +103,7 @@ MAIN()
         INSTALL_AUR_PKGS
         DOWNLOAD_DOTFILES
         COMPLETE_TOOL_CONFIGS
-    } 2>&1 | tee install.log
+    } 2>&1 | tee "$LOG_SCRIPT"
 }
 
 MAIN
