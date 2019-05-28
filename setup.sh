@@ -5,6 +5,9 @@
 set -e
 
 STORAGE_DEVICE="/dev/sda"
+##
+# For instance, a storage device like `/dev/nvme0n1` has a "nvme0n1(p[0-9]+)"
+# partition name pattern. In this case, the partition suffix is "p".
 PARTITION_SUFFIX=""
 PASSPHRASE=
 
