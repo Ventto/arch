@@ -2,7 +2,7 @@ Arch Setup
 ==========
 
 *"Install the Arch Linux distribution on a computer in UEFI mode and
-encrypt the entire system"*
+encrypt the entire system (LUKS upper LVM)"*
 
 # Requirements
 
