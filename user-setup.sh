@@ -16,6 +16,11 @@ TITLE()
     printf '#===================================#\n\n'
 }
 
+RUN_DHCPCD_ETH0()
+{
+    sudo dhcpcd eth0
+}
+
 UPDATE_PASSWD()
 {
     passwd
@@ -104,6 +109,7 @@ MAIN()
 {
     # Display output in terminal and write it to a log file as well
     {
+        RUN_DHCPCD_ETH0
         UPDATE_PASSWD
         UPDATE_PACKAGE_LIST
         INSTALL_YAY
