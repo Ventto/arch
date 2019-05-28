@@ -17,8 +17,9 @@ GRUB_INSTALL()
     #
     ln -s /hostrun/lvm /run/lvm
     ls -l /run/lvm
-    grub-install --efi-directory=/boot/efi --boot-directory=/boot/efi/EFI \
-                 --bootloader-id=GRUB --recheck
+    grub-install --target=x86_64-efi \
+                 --efi-directory=/boot/efi \
+                 --removable
     grub-mkconfig -o /boot/grub/grub.cfg
 }
 
