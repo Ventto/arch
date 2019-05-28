@@ -3,6 +3,10 @@
 # Copyright (c) 2019-2020 Thomas "Ventto" Venriès <thomas.venries@gmail.com>
 #
 set -e
+set -x
+
+CRYPTED_PARTITION="$1"
+PASSPHRASE="$2"
 
 TITLE()
 {
@@ -111,9 +115,28 @@ INSTALL_PACMAN_USER_PKGS()
     pacman -S --noconfirm - < pacman-list.pkg
 }
 
+ADD_CRYPTOKEY_TO_INITRAMFS()
+{
+    TITLE "Step: ${FUNCNAME[0]}"
+
+    # Generate 4096-bit key
+    dd bs=1024 count=4 if=/dev/random of=/crypto_keyfile.bin iflag=fullblock
+
+    echo -n "$PASSPHRASE" | \
+        cryptsetup luksAddKey "$CRYPTED_PARTITION" /crypto_keyfile.bin -
+
+    # Add file to the initramfs config file before generating it
+    sed -i 's#^FILES=(\(.*\))#FILES=(\1 /crypto_keyfile.bin)#' \
+        /etc/mkinitcpio.conf
+
+    mkinitcpio -p linux
+    chmod 000 /crypto_keyfile.bin
+}
+
 MAIN()
 {
     GRUB_INSTALL
+    ADD_CRYPTOKEY_TO_INITRAMFS
     SET_LOCALTIME
     SET_LOCALE
     SET_KEYBOARD_LANG
