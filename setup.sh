@@ -6,12 +6,22 @@ set -e
 
 STORAGE_DEVICE="/dev/sda"
 PARTITION_PREFIX=""
+PASSPHRASE=
 
 TITLE()
 {
     printf '\n#===================================#\n'
     printf '# %s\n' "$1"
     printf '#===================================#\n\n'
+}
+
+ASK_MANUAL_PARAMETERS()
+{
+    TITLE "Step: ${FUNCNAME[0]}"
+
+    printf "Enter passphrase for system encryption:"
+    read_secret PASSPHRASE
+    readonly PASSPHRASE
 }
 
 CHECK_CONNECTION()
@@ -68,11 +78,9 @@ ENCRYPT_SYSTEM()
     modprobe dm-crypt
     modprobe dm-mod
 
-    printf "Enter passphrase for system encryption:"
-    read_secret passphrase
     # shellcheck disable=SC2154
-    echo -n "$passphrase" | cryptsetup -q luksFormat "${STORAGE_DEVICE}${PARTITION_PREFIX}2" -
-    echo -n "$passphrase" | cryptsetup luksOpen "${STORAGE_DEVICE}${PARTITION_PREFIX}2" lvm -
+    echo -n "$PASSPHRASE" | cryptsetup -q luksFormat "${STORAGE_DEVICE}${PARTITION_PREFIX}2" -
+    echo -n "$PASSPHRASE" | cryptsetup luksOpen "${STORAGE_DEVICE}${PARTITION_PREFIX}2" lvm -
     pvcreate /dev/mapper/lvm
     vgcreate vg /dev/mapper/lvm
     lvcreate -L 1G vg -C y -n swap
@@ -159,7 +167,8 @@ RUN_CHROOT_SETUP()
 
     # Run the second script which runs commands under chroot
     cp ./chroot-setup.sh /mnt
-    arch-chroot /mnt ./chroot-setup.sh
+    arch-chroot /mnt ./chroot-setup.sh \
+        "${STORAGE_DEVICE}${PARTITION_PREFIX}2" "$PASSPHRASE"
 }
 
 REMOVE_ROOT_PASSWD()
@@ -190,6 +199,7 @@ MAIN()
 {
     # Display output in terminal and write it to a log file as well
     {
+        ASK_MANUAL_PARAMETERS
         CHECK_CONNECTION
         SET_TIMEDATECTL
         ERASING_DISK
