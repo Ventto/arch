@@ -12,21 +12,20 @@ encrypt the entire system"*
 
 # Run
 
-* Boot the livecd
-
-* Download setup scripts:
-
-```
-$ pacman -Sy unzip
-$ wget https://codeload.github.com/Ventto/arch/zip/master -O setup.zip
-$ unzip -j setup.zip
-$ chmod +x *.sh
-```
+* Boot the Arch Linux's live CD
 
 * Run the script:
 
 ```
 $ ./setup.sh
+```
+
+* Reboot and log in
+
+* Run the script as user:
+
+```
+$ ./user-setup.sh && exit
 ```
 
 # See Also
