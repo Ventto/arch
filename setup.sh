@@ -187,6 +187,14 @@ PRINT_RESUME()
     df -h | grep -E "Size|vg-|$(echo "$STORAGE_DEVICE" | cut -d/ -f3)"
 }
 
+SAVE_LOGS()
+{
+    TITLE "Step: ${FUNCNAME[0]}"
+
+    mkdir -p /mnt/root/logs
+    find . -maxdepth 1 -type f -name '*.log' -exec cp {} /mnt/root/logs \;
+}
+
 UMOUNT_PARTITIONS()
 {
     TITLE "Step: ${FUNCNAME[0]}"
@@ -215,6 +223,7 @@ MAIN()
         RUN_CHROOT_SETUP
         REMOVE_ROOT_PASSWD
         PRINT_RESUME
+        SAVE_LOGS
         UMOUNT_PARTITIONS
     } 2>&1 | tee install.log
 }
