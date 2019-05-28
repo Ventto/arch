@@ -107,3 +107,6 @@ MAIN()
 }
 
 MAIN
+
+# To apply the change for the next session
+exit
